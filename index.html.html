@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generation SSC: Quest 2026</title>
+    <style>
+        :root { --green: #1b4332; --blue: #0077b6; --brown: #6b4226; --gold: #ffb703; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #081c15; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; color: white; }
+        
+        #start-screen { position: absolute; inset: 0; background: radial-gradient(circle, #2d6a4f 0%, #081c15 100%); z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #game-frame { width: 950px; height: 750px; background: #f8f9fa; border: 10px solid white; border-radius: 30px; position: relative; color: #333; display: none; overflow: hidden; }
+        
+        #key-bar { height: 60px; background: var(--green); display: flex; justify-content: center; align-items: center; gap: 10px; border-bottom: 5px solid var(--gold); }
+        .key { font-size: 24px; opacity: 0.1; transition: 0.4s; }
+        .key-on { opacity: 1; transform: scale(1.2); filter: drop-shadow(0 0 8px gold); }
+
+        .mission-area { position: absolute; inset: 60px 0 0 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        h2 { color: var(--green); background: white; padding: 10px 25px; border-radius: 50px; border: 2px solid var(--green); font-size: 18px; margin-bottom: 15px; text-align: center; }
+        #univ-zone { width: 900px; height: 480px; position: relative; background: #fff; border-radius: 20px; border: 2px solid #ddd; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+
+        .bin { width: 130px; height: 150px; border-radius: 10px; display: flex; align-items: flex-end; justify-content: center; color: white; font-weight: bold; padding-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .bin:hover { transform: scale(1.05); }
+        .item-card { font-size: 65px; cursor: pointer; padding: 10px; border: 4px solid transparent; border-radius: 15px; }
+        .selected { border-color: var(--green); background: #e8f5e9; }
+
+        .advice-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 40px; text-align: center; }
+        .btn-style { padding: 15px 45px; font-size: 22px; cursor: pointer; background: var(--gold); border: none; border-radius: 50px; font-weight: bold; color: #1b4332; }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1 style="font-size:55px; color:var(--gold);">GENERATION SSC</h1>
+        <p style="font-size:24px; margin-bottom:40px;">Smart • Safe • Clean Quest</p>
+        <button class="btn-style" onclick="beginGame()">START QUEST</button>
+    </div>
+
+    <div id="game-frame">
+        <div id="key-bar"></div>
+        <div class="mission-area">
+            <h2 id="m-title">Loading Mission...</h2>
+            <div id="univ-zone"></div>
+        </div>
+        <div id="advice-screen" class="advice-overlay">
+            <h1 style="color:var(--gold)">🌍 EARTH ADVICE</h1>
+            <p id="advice-text" style="font-size:28px; margin-bottom:40px;"></p>
+            <button class="btn-style" onclick="closeAdvice()">CONTINUE QUEST</button>
+        </div>
+    </div>
+
+<script>
+    let activeKey = 1;
+    let selectedT = null;
+    const synth = window.speechSynthesis;
+
+    function say(t) {
+        synth.cancel();
+        const m = new SpeechSynthesisUtterance(t);
+        m.rate = 0.95;
+        synth.speak(m);
+    }
+
+    function beginGame() {
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-frame').style.display = 'block';
+        const bar = document.getElementById('key-bar');
+        bar.innerHTML = '';
+        for(let i=1; i<=12; i++) bar.innerHTML += `<span class="key" id="k${i}">🔑</span>`;
+        runLevel(1);
+    }
+
+    function markWin(n) {
+        document.getElementById(`k${n}`).classList.add('key-on');
+        say("Mission Complete!");
+        setTimeout(() => {
+            if (n % 3 === 0 && n < 12) {
+                const earthTips = [
+                    "Earth Protection: Turn off the lights when leaving a room to save energy!",
+                    "Clean Planet: Use a reusable water bottle to reduce plastic waste!",
+                    "Nature Care: Trees provide the oxygen we breathe, protect our forests!"
+                ];
+                document.getElementById('advice-text').innerText = earthTips[(n/3)-1];
+                document.getElementById('advice-screen').style.display = 'flex';
+                say(document.getElementById('advice-text').innerText);
+            } else if (n === 12) {
+                const finalMsg = "Generation SSC: You are a Master Green Guardian! Now, I invite you to create something beautiful using trash—turn waste into art!";
+                say(finalMsg);
+                alert(finalMsg);
+            } else {
+                runLevel(n + 1);
+            }
+        }, 1200);
+    }
+
+    function runLevel(n) {
+        activeKey = n;
+        const zone = document.getElementById('univ-zone');
+        const title = document.getElementById('m-title');
+        zone.innerHTML = '';
+        zone.style.background = "white";
+        zone.style.backgroundImage = "none";
+
+        if (n === 1) {
+            title.innerText = "Mission 1: Sort the Waste! Click an item, then click its Bin.";
+            zone.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:30px; width:100%;">
+                <div style="display:flex; gap:20px;">
+                    <div class="bin" style="background:var(--brown)" onclick="testB('o')">ORGANIC</div>
+                    <div class="bin" style="background:var(--gold); color:black" onclick="testB('pl')">PLASTIC</div>
+                    <div class="bin" style="background:var(--blue)" onclick="testB('p')">PAPER</div>
+                </div>
+                <div id="tray" style="display:flex; gap:20px;"></div>
+            </div>`;
+            let left = 3;
+            const items = [{e:'📦',t:'p'}, {e:'🍂',t:'o'}, {e:'🧴',t:'pl'}];
+            items.forEach(it => {
+                const d = document.createElement('div'); d.className='item-card'; d.innerText=it.e;
+                d.onclick = () => { zone.querySelectorAll('.item-card').forEach(i=>i.classList.remove('selected')); d.classList.add('selected'); selectedT=it.t; };
+                zone.querySelector('#tray').appendChild(d);
+            });
+            window.testB = (t) => {
+                if(selectedT === t) { zone.querySelector('.selected').style.visibility='hidden'; left--; selectedT=null; if(left===0) markWin(1); }
+                else say("Try again!");
+            };
+        } 
+        else if (n === 2) {
+            title.innerText = "Mission 2: Clean the Classroom! Click the 6 pieces of litter.";
+            zone.style.backgroundImage = "url('https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=900&q=80')";
+            zone.style.backgroundSize = "cover";
+            let trash = 6;
+            for(let i=0; i<6; i++) {
+                const t = document.createElement('div');
+                t.innerHTML = ['🥤','🗞️','🥫'][i%3];
+                t.style = `position:absolute; left:${10+Math.random()*70}%; top:${40+Math.random()*40}%; font-size:50px; cursor:pointer; filter:drop-shadow(2px 2px 2px black);`;
+                t.onclick = () => { t.style.display='none'; trash--; if(trash===0) markWin(2); };
+                zone.appendChild(t);
+            }
+        }
+        else if (n === 3) {
+            title.innerText = "Mission 3: Save Water! Click the 5 leaking drops.";
+            zone.innerHTML = `<div style="font-size:150px; margin-top:-100px;">🚰</div>`;
+            let drops = 5;
+            for(let i=0; i<5; i++) {
+                const d = document.createElement('div'); d.innerText = '💧';
+                d.style = `position:absolute; left:${43 + Math.random()*5}%; top:${50 + (i*10)}%; font-size:50px; cursor:pointer;`;
+                d.onclick = () => { d.style.display='none'; drops--; if(drops===0) markWin(3); };
+                zone.appendChild(d);
+            }
+        }
+        else if (n === 4) {
+            title.innerText = "Mission 4: Protect our Data! Move the Shield to the Globe.";
+            zone.innerHTML = `<div id="gl" style="position:absolute; left:60%; top:35%; font-size:120px">🌐</div>
+                             <div id="sh" style="position:absolute; left:10%; top:25%; font-size:180px; cursor:pointer;">🛡️</div>`;
+            const sh = zone.querySelector('#sh');
+            sh.onmousedown = () => {
+                document.onmousemove = (e) => {
+                    let rect = zone.getBoundingClientRect();
+                    sh.style.left = (e.clientX - rect.left - 90) + 'px';
+                    sh.style.top = (e.clientY - rect.top - 90) + 'px';
+                    if(Math.abs(sh.getBoundingClientRect().left - document.getElementById('gl').getBoundingClientRect().left) < 50) {
+                        document.onmousemove = null; markWin(4);
+                    }
+                };
+                document.onmouseup = () => document.onmousemove = null;
+            };
+        }
+        else if (n === 5) {
+            title.innerText = "Mission 5: Save Energy! Click all 4 lights to turn them off.";
+            let lights = 4;
+            for(let i=0; i<4; i++) {
+                const l = document.createElement('div'); l.innerText = '💡';
+                l.style = `font-size:100px; cursor:pointer; margin:20px;`;
+                l.onclick = () => { l.innerText='⚫'; lights--; if(lights===0) markWin(5); };
+                zone.appendChild(l);
+            }
+        }
+        else if (n === 6) {
+            title.innerText = "Mission 6: Choose the transport that reduces pollution!";
+            zone.innerHTML = `
+                <div style="text-align:center; cursor:pointer; margin:30px;" onclick="say('Cars emit CO2!'); this.style.opacity=0.3;">
+                    <div style="font-size:120px;">🚗</div><p>CAR</p>
+                </div>
+                <div style="text-align:center; cursor:pointer; margin:30px;" onclick="markWin(6)">
+                    <div style="font-size:120px;">🚲</div><p>BICYCLE</p>
+                </div>`;
+        }
+        else if (n === 7) {
+            title.innerText = "Mission 7: Save the Turtle! Remove 4 plastic bags.";
+            zone.style.background = "#81d4fa";
+            zone.innerHTML = `<div style="font-size:160px;">🐢</div>`;
+            let bags = 4;
+            for(let i=0; i<4; i++) {
+                const b = document.createElement('div'); b.innerText = '🛍️';
+                b.style = `position:absolute; left:${Math.random()*80}%; top:${Math.random()*80}%; font-size:80px; cursor:pointer;`;
+                b.onclick = () => { b.style.display='none'; bags--; if(bags===0) markWin(7); };
+                zone.appendChild(b);
+            }
+        }
+        else if (n === 8) {
+            title.innerText = "Mission 8: Clean the Nature! Click the 3 trash items.";
+            zone.style.background = "#dcedc8";
+            let rem = 3;
+            const objects = [{e:'🥫', b:true}, {e:'🌳', b:false}, {e:'🧴', b:true}, {e:'🌸', b:false}, {e:'🥤', b:true}];
+            objects.forEach(obj => {
+                const o = document.createElement('div'); o.style="font-size:80px; cursor:pointer; margin:20px; display:inline-block;";
+                o.innerText = obj.e;
+                o.onclick = () => { if(obj.b){ o.style.opacity=0; rem--; if(rem===0) markWin(8); } };
+                zone.appendChild(o);
+            });
+        }
+        else if (n === 9) {
+            title.innerText = "Mission 9: Reforestation! Click the ground 5 times to plant a forest.";
+            let trees = 0;
+            zone.innerHTML = `<div id='forest' style='width:100%; height:100%; cursor:pointer;'></div>`;
+            zone.onclick = () => {
+                trees++;
+                const t = document.createElement('div'); t.innerText = '🌳';
+                t.style = `position:absolute; left:${Math.random()*85}%; top:${Math.random()*70}%; font-size:80px;`;
+                zone.querySelector('#forest').appendChild(t);
+                if(trees === 5) { zone.onclick = null; setTimeout(()=>markWin(9), 600); }
+            }
+        }
+        else if (n === 10) {
+            title.innerText = "Mission 10: Digital Wisdom! Identify the Phishing email (Red) vs Safe email (Green).";
+            zone.innerHTML = `
+                <div style="padding:20px; background:#ffcdd2; margin:10px; cursor:pointer; border-radius:10px;" onclick="say('Correct! Never click unknown links.'); markWin(10)">
+                    <b>From: Unknown</b><br>Click here for a FREE prize! 🎁
+                </div>
+                <div style="padding:20px; background:#c8e6c9; margin:10px; cursor:pointer; border-radius:10px;" onclick="say('That is a safe school email.');">
+                    <b>From: Teacher</b><br>Homework is due Monday. 📚
+                </div>`;
+        }
+        else if (n === 11) {
+            title.innerText = "Mission 11: Healthy Food! Click all 3 healthy items to win.";
+            let healthyCount = 3;
+            const foods = [
+                {e:'🍎', h:true}, {e:'🥦', h:true}, {e:'🍌', h:true},
+                {e:'🍩', h:false}, {e:'🍕', h:false}, {e:'🍟', h:false}
+            ];
+            // Shuffle
+            foods.sort(() => Math.random() - 0.5);
+            foods.forEach(f => {
+                const item = document.createElement('div');
+                item.innerText = f.e;
+                item.style = "font-size:100px; cursor:pointer; margin:15px;";
+                item.onclick = () => {
+                    if(f.h) {
+                        item.style.visibility = 'hidden';
+                        healthyCount--;
+                        if(healthyCount === 0) markWin(11);
+                    } else {
+                        say("That is unhealthy! Try a fruit or vegetable.");
+                        item.style.transform = "shake 0.5s";
+                    }
+                };
+                zone.appendChild(item);
+            });
+        }
+        else if (n === 12) {
+            title.innerText = "Mission 12: The Future is in your hands! Click the Earth to Finish.";
+            zone.innerHTML = `<div style="font-size:220px; cursor:pointer; animation: pulse 2s infinite;" onclick="markWin(12)">🌍</div>`;
+        }
+        say(title.innerText);
+    }
+
+    function closeAdvice() {
+        document.getElementById('advice-screen').style.display = 'none';
+        runLevel(activeKey + 1);
+    }
+</script>
+</body>
+</html>
